@@ -21,20 +21,33 @@ func renderApi(w http.ResponseWriter, r *http.Request){
     log.Println("RequestURI: " + r.Host+r.RequestURI)
     key := mux.Vars(r)["key"]
     
-    if(key == "hello"){
-        w.Write([]byte("Hello World"))
-    }else if(key == "bye"){
-        w.Write([]byte("Au revoir!!!"))
-    }else if(key == "test"){
-        w.Write([]byte("test"))
-    }else if(key == "json"){
-        m := Message{"Alice", "Hello", 1294706395881547000}
-        b, _ := json.Marshal(m)
-        w.Header().Set("Content-Type", "application/json")
-        w.Write(b)
+    if val, ok := routes[key]; ok {
+        val.(func(http.ResponseWriter, *http.Request))(w,r)
     }else{
         notFound(w,r)
     }
+}
+// define global map; initialize as empty with the trailing {}
+var routes = map[string]interface{}{
+    "hello": hello_api,
+    "bye": bye_api,
+    "test": test_api,
+    "json": json_api,
+}
+func hello_api(w http.ResponseWriter, r *http.Request){
+    w.Write([]byte("Hello World"))
+}
+func bye_api(w http.ResponseWriter, r *http.Request){
+    w.Write([]byte("Au revoir!!!"))
+}
+func test_api(w http.ResponseWriter, r *http.Request){
+    w.Write([]byte("test"))
+}
+func json_api(w http.ResponseWriter, r *http.Request){
+    m := Message{"Alice", "Hello", 1294706395881547000}
+    b, _ := json.Marshal(m)
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(b)
 }
 
 func notFound(w http.ResponseWriter, r *http.Request){
