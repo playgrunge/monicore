@@ -1,8 +1,6 @@
 monicore
 ========
 ```Shell
-export GOPATH=/home/vagrant/gocode
-export PATH=$PATH:$GOPATH/bin
 cd $GOPATH/src/github.com/playgrunge/monicore
 gin -p 3001 -a 3000 r server.go
 ```
