@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/playgrunge/monicore/api"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -41,7 +40,7 @@ var routes = map[string]interface{}{
 	"test":    test_api,
 	"json":    json_api,
 	"hockey":  new(api.HockeyApi),
-	"airport": airport_api,
+	"airport": new(api.AirportApi),
 }
 
 func hello_api(w http.ResponseWriter, r *http.Request) {
@@ -65,34 +64,6 @@ func json_api(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(b)
-}
-
-func hockey_api(w http.ResponseWriter, r *http.Request) {
-	res, err := http.Get("http://api.hockeystreams.com/Scores?key=f8788882ac0e9a9091c3985ce12fae82")
-	if err != nil {
-		log.Println(err)
-	}
-	robots, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(robots)
-}
-
-func airport_api(w http.ResponseWriter, r *http.Request) {
-	res, err := http.Get("https://api.flightstats.com/flex/flightstatus/rest/v2/json/airport/status/YUL/dep/2014/11/30/10?appId=e454b3d5&appKey=6a2556db5129b9f57723eb368d34ae32&utc=false&numHours=1&maxFlights=5")
-	if err != nil {
-		log.Println(err)
-	}
-	robots, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(robots)
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
