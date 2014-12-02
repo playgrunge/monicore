@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/playgrunge/monicore/api"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -23,7 +24,11 @@ func renderApi(w http.ResponseWriter, r *http.Request) {
 	key := mux.Vars(r)["key"]
 
 	if val, ok := routes[key]; ok {
-		val.(func(http.ResponseWriter, *http.Request))(w, r)
+		if t, ok := val.(api.ApiRequest); ok {
+			t.SendApi(w, r)
+		} else {
+			val.(func(http.ResponseWriter, *http.Request))(w, r)
+		}
 	} else {
 		notFound(w, r)
 	}
@@ -31,11 +36,12 @@ func renderApi(w http.ResponseWriter, r *http.Request) {
 
 // define global map;
 var routes = map[string]interface{}{
-	"hello":  hello_api,
-	"bye":    bye_api,
-	"test":   test_api,
-	"json":   json_api,
-	"hockey": hockey_api,
+	"hello":   hello_api,
+	"bye":     bye_api,
+	"test":    test_api,
+	"json":    json_api,
+	"hockey":  new(api.HockeyApi),
+	"airport": airport_api,
 }
 
 func hello_api(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +69,20 @@ func json_api(w http.ResponseWriter, r *http.Request) {
 
 func hockey_api(w http.ResponseWriter, r *http.Request) {
 	res, err := http.Get("http://api.hockeystreams.com/Scores?key=f8788882ac0e9a9091c3985ce12fae82")
+	if err != nil {
+		log.Println(err)
+	}
+	robots, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(robots)
+}
+
+func airport_api(w http.ResponseWriter, r *http.Request) {
+	res, err := http.Get("https://api.flightstats.com/flex/flightstatus/rest/v2/json/airport/status/YUL/dep/2014/11/30/10?appId=e454b3d5&appKey=6a2556db5129b9f57723eb368d34ae32&utc=false&numHours=1&maxFlights=5")
 	if err != nil {
 		log.Println(err)
 	}
