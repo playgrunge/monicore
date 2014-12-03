@@ -53,10 +53,9 @@ func test_api(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("test"))
 }
 func json_api(w http.ResponseWriter, r *http.Request) {
-	//m := Message{"Alice", "Hello", 1294706395881547000}
 	m := map[string]Message{
 		"0": Message{"Alice", "Hello", 1294706395881547000},
-		"1": Message{"Alice", "Hello", 1294706395881547000},
+		"1": Message{"Bob", "Bye", 1294706595681746000},
 	}
 	b, err := json.Marshal(m)
 	if err != nil {

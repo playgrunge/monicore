@@ -16,25 +16,27 @@ type Config struct {
 	}
 }
 
-var c Config
+var (
+	c          Config
+	configFile = "apiconfig.json"
+)
 
 func getConfig() Config {
 	if c == (Config{}) {
-		c = loadConfig()
+		loadConfig()
 	}
 	return c
 }
 
-func loadConfig() Config {
-	file, err := ioutil.ReadFile("apiconfig.json")
+func loadConfig() {
+	log.Println("loading config from file...")
+	file, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		log.Println("open config: ", err)
 	}
-
 	temp := new(Config)
 	if err = json.Unmarshal(file, temp); err != nil {
 		log.Println("parse config: ", err)
 	}
-
-	return *temp
+	c = *temp
 }
