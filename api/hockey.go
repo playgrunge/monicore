@@ -9,14 +9,16 @@ import (
 type HockeyApi struct{}
 
 func (a *HockeyApi) SendApi(w http.ResponseWriter, r *http.Request) {
-	res, err := http.Get("http://api.hockeystreams.com/Scores?key=f8788882ac0e9a9091c3985ce12fae82")
+	res, err := http.Get("http://api.hockeystreams.com/Scores?key=" + getConfig().Hockeystream.Key)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 	robots, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(robots)
