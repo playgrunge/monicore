@@ -19,6 +19,7 @@ func main() {
 }
 
 func renderApi(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	log.Println("RequestURI: " + r.Host + r.RequestURI)
 	key := mux.Vars(r)["key"]
 
@@ -40,6 +41,7 @@ var routes = map[string]interface{}{
 	"test":    test_api,
 	"json":    json_api,
 	"hockey":  new(api.HockeyApi),
+	"scores":  new(api.HockeyApi),
 	"airport": new(api.AirportApi),
 }
 
