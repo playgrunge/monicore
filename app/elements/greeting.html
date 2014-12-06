@@ -1,0 +1,14 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<polymer-element name="polymer-greeting"  attributes="name">
+  <template>
+    <h1>'Allo, {{ name }}!</h1>
+    <span>Update text to change the greeting.</span>
+    <input type="text" value="{{ name }}">
+  </template>
+  <script>
+    Polymer('polymer-greeting', {
+      name : 'Polymer'
+    });
+  </script>
+</polymer-element>
