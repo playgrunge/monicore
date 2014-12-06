@@ -1,1 +1,0 @@
-/home/vagrant/polymer/polymer-boilerplate/app/
