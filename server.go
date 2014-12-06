@@ -6,12 +6,16 @@ import (
 	"github.com/playgrunge/monicore/api"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/{key}", renderApi)
-	r.PathPrefix("/").Handler(NoCacheFileServer(http.Dir("./doc/")))
+	r.HandleFunc("/pool", renderLongPool)
+	//r.PathPrefix("/").Handler(NoCacheFileServer(http.Dir("./doc/")))
+	r.PathPrefix("/").Handler(NoCacheFileServer(http.Dir("./app/")))
 	http.Handle("/", r)
 
 	log.Println("Listening...")
@@ -33,6 +37,24 @@ func renderApi(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var lpchan = make(chan chan string)
+
+func renderLongPool(w http.ResponseWriter, r *http.Request) {
+	timeout, err := strconv.Atoi(r.URL.Query().Get("timeout"))
+	if err != nil || timeout > 180000 || timeout < 0 {
+		timeout = 60000 // default timeout is 60 seconds
+	}
+	var myRequestChan = make(chan string)
+
+	select {
+	case lpchan <- myRequestChan:
+	case <-time.After(time.Duration(timeout) * time.Millisecond):
+		return
+	}
+
+	w.Write([]byte(<-myRequestChan))
+}
+
 // define global map;
 var routes = map[string]interface{}{
 	"hello":   hello_api,
@@ -44,6 +66,16 @@ var routes = map[string]interface{}{
 }
 
 func hello_api(w http.ResponseWriter, r *http.Request) {
+Loop:
+	for {
+		select {
+		case clientchan := <-lpchan:
+			clientchan <- "hello, client!"
+			break
+		default:
+			break Loop
+		}
+	}
 	w.Write([]byte("Hello World"))
 }
 func bye_api(w http.ResponseWriter, r *http.Request) {
