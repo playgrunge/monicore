@@ -68,17 +68,34 @@ var routes = map[string]interface{}{
 }
 
 func hello_api(w http.ResponseWriter, r *http.Request) {
-Loop:
+	clos := false
+
 	for {
+		if clos {
+			log.Println("no more chan!")
+			w.Write([]byte("Hello World"))
+			return
+		}
+		log.Println("release client...")
 		select {
-		case clientchan := <-lpchan:
-			clientchan <- "hello, client!"
-			break
+		case clientchan, ok := <-lpchan:
+			if !ok {
+				clos = true
+				log.Println("closing chan")
+			} else {
+				defer close(clientchan)
+				log.Println("released!")
+				log.Println(clientchan)
+				clientchan <- "hello, client!"
+				//time.Sleep(10 * time.Millisecond)
+			}
 		default:
-			break Loop
+			log.Println("default")
+			clos = true
+			log.Println("closing chan2")
 		}
 	}
-	w.Write([]byte("Hello World"))
+
 }
 func bye_api(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Au revoir!!!"))
