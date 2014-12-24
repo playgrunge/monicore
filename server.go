@@ -6,14 +6,14 @@ import (
 	"github.com/playgrunge/monicore/api"
 	"log"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 func main() {
 	r := mux.NewRouter()
+	go h.run()
+	http.HandleFunc("/websocket", serveWs)
+	http.HandleFunc("/wsSend", wsSend)
 	r.HandleFunc("/api/{key}", renderApi)
-	r.HandleFunc("/pool", renderLongPool)
 	//r.PathPrefix("/").Handler(NoCacheFileServer(http.Dir("./doc/")))
 	r.PathPrefix("/").Handler(NoCacheFileServer(http.Dir("./app/")))
 	http.Handle("/", r)
@@ -23,7 +23,6 @@ func main() {
 }
 
 func renderApi(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	log.Println("RequestURI: " + r.Host + r.RequestURI)
 	key := mux.Vars(r)["key"]
 
@@ -38,65 +37,15 @@ func renderApi(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var lpchan = make(chan chan string)
-
-func renderLongPool(w http.ResponseWriter, r *http.Request) {
-	timeout, err := strconv.Atoi(r.URL.Query().Get("timeout"))
-	if err != nil || timeout > 180000 || timeout < 0 {
-		timeout = 60000 // default timeout is 60 seconds
-	}
-	var myRequestChan = make(chan string)
-
-	select {
-	case lpchan <- myRequestChan:
-	case <-time.After(time.Duration(timeout) * time.Millisecond):
-		return
-	}
-
-	w.Write([]byte(<-myRequestChan))
-}
-
 // define global map;
 var routes = map[string]interface{}{
-	"hello":   hello_api,
 	"bye":     bye_api,
 	"test":    test_api,
 	"json":    json_api,
 	"hockey":  new(api.HockeyApi),
-	"scores":  new(api.HockeyApi),
 	"airport": new(api.AirportApi),
 }
 
-func hello_api(w http.ResponseWriter, r *http.Request) {
-	clos := false
-
-	for {
-		if clos {
-			log.Println("no more chan!")
-			w.Write([]byte("Hello World"))
-			return
-		}
-		log.Println("release client...")
-		select {
-		case clientchan, ok := <-lpchan:
-			if !ok {
-				clos = true
-				log.Println("closing chan")
-			} else {
-				defer close(clientchan)
-				log.Println("released!")
-				log.Println(clientchan)
-				clientchan <- "hello, client!"
-				//time.Sleep(10 * time.Millisecond)
-			}
-		default:
-			log.Println("default")
-			clos = true
-			log.Println("closing chan2")
-		}
-	}
-
-}
 func bye_api(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Au revoir!!!"))
 }
