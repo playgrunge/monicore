@@ -25,8 +25,8 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-        return true
-    },
+		return true
+	},
 }
 
 // connection is an middleman between the websocket connection and the hub.
@@ -48,9 +48,9 @@ func (c *connection) readPump() {
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 
 	c.ws.SetPongHandler(
-		func(string) error { 
-			c.ws.SetReadDeadline(time.Now().Add(pongWait)); 
-			return nil 
+		func(string) error {
+			c.ws.SetReadDeadline(time.Now().Add(pongWait))
+			return nil
 		})
 
 	for {
@@ -110,6 +110,6 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 }
 
 func wsSend(w http.ResponseWriter, r *http.Request) {
-	message:= []byte("New message send from the server")
+	message := []byte("New message send from the server")
 	h.broadcast <- message
 }

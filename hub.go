@@ -1,8 +1,9 @@
 package main
 
 import (
-"log"
+	"log"
 )
+
 // hub maintains the set of active connections and broadcasts messages to the
 // connections.
 type hub struct {
