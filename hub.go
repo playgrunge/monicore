@@ -8,7 +8,7 @@ import (
 // connections.
 type hub struct {
 	// Registered connections.
-	connections map[*connection]bool
+	connections map[*connection]struct{}
 
 	// Inbound messages from the connections.
 	broadcast chan []byte
@@ -24,7 +24,7 @@ var h = hub{
 	broadcast:   make(chan []byte),
 	register:    make(chan *connection),
 	unregister:  make(chan *connection),
-	connections: make(map[*connection]bool),
+	connections: make(map[*connection]struct{}),
 }
 
 func (h *hub) run() {
@@ -32,7 +32,7 @@ func (h *hub) run() {
 		select {
 		case c := <-h.register:
 			log.Println("Register...")
-			h.connections[c] = true
+			h.connections[c] = struct{}{}
 		case c := <-h.unregister:
 			log.Println("Unregister...")
 			if _, ok := h.connections[c]; ok {
