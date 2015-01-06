@@ -23,6 +23,7 @@ func main() {
 }
 
 func renderApi(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	log.Println("RequestURI: " + r.Host + r.RequestURI)
 	key := mux.Vars(r)["key"]
 
