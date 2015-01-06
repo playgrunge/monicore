@@ -110,6 +110,11 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 }
 
 func wsSend(w http.ResponseWriter, r *http.Request) {
-	message := []byte("New message send from the server")
+	message := []byte("")
+	if r.FormValue("m") != "" {
+		message = []byte(r.FormValue("m"))
+	}else{
+		message = []byte("New message send from the server")
+	}
 	h.broadcast <- message
 }
