@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/gorilla/websocket"
+	"github.com/playgrunge/monicore/api"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -113,8 +116,34 @@ func wsSend(w http.ResponseWriter, r *http.Request) {
 	message := []byte("")
 	if r.FormValue("m") != "" {
 		message = []byte(r.FormValue("m"))
-	}else{
+	} else {
 		message = []byte("New message send from the server")
 	}
 	h.broadcast <- message
+}
+
+func wsSendJSON(w http.ResponseWriter, r *http.Request) {
+	res, err := http.Get("http://api.hockeystreams.com/Scores?key=" + api.GetConfig().Hockeystream.Key)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	robots, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	var f interface{}
+	json.Unmarshal(robots, &f)
+
+	message := ApiMessage{"hockey", f}
+	b, _ := json.Marshal(message)
+	h.broadcast <- b
+}
+
+type ApiMessage struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
 }

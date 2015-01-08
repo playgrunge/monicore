@@ -9,7 +9,7 @@ import (
 type AirportApi struct{}
 
 func (a *AirportApi) SendApi(w http.ResponseWriter, r *http.Request) {
-	res, err := http.Get("http://api.flightstats.com/flex/airports/rest/v1/json/iata/YUL?appId=" + getConfig().Flightstats.AppId + "&appKey=" + getConfig().Flightstats.AppKey + "&utc=false&numHours=1&maxFlights=5")
+	res, err := http.Get("http://api.flightstats.com/flex/airports/rest/v1/json/iata/YUL?appId=" + GetConfig().Flightstats.AppId + "&appKey=" + GetConfig().Flightstats.AppKey + "&utc=false&numHours=1&maxFlights=5")
 	if err != nil {
 		log.Println(err)
 		return

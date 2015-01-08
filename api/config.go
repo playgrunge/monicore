@@ -21,7 +21,7 @@ var (
 	configFile = "apiconfig.json"
 )
 
-func getConfig() Config {
+func GetConfig() Config {
 	if c == (Config{}) {
 		loadConfig()
 	}

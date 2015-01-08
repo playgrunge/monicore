@@ -9,7 +9,7 @@ import (
 type HockeyApi struct{}
 
 func (a *HockeyApi) SendApi(w http.ResponseWriter, r *http.Request) {
-	res, err := http.Get("http://api.hockeystreams.com/Scores?key=" + getConfig().Hockeystream.Key)
+	res, err := http.Get("http://api.hockeystreams.com/Scores?key=" + GetConfig().Hockeystream.Key)
 	if err != nil {
 		log.Println(err)
 		return
