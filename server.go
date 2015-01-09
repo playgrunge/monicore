@@ -15,8 +15,7 @@ func main() {
 	http.HandleFunc("/wsSend", wsSend)
 	http.HandleFunc("/wsSendJSON", wsSendJSON)
 	r.HandleFunc("/api/{key}", renderApi)
-	//r.PathPrefix("/").Handler(NoCacheFileServer(http.Dir("./doc/")))
-	r.PathPrefix("/").Handler(NoCacheFileServer(http.Dir("./app/")))
+	r.PathPrefix("/").Handler(NoCacheFileServer(http.Dir("./doc/")))
 	http.Handle("/", r)
 
 	log.Println("Listening...")
