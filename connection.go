@@ -39,6 +39,8 @@ type connection struct {
 
 	// Buffered channel of outbound messages.
 	send chan []byte
+
+	listCurrentAPI map[string]struct{}
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -57,9 +59,15 @@ func (c *connection) readPump() {
 		})
 
 	for {
-		_, _, err := c.ws.ReadMessage()
+		_, message, err := c.ws.ReadMessage()
 		if err != nil {
 			break
+		}
+		var subscribedAPI []string
+		json.Unmarshal(message, &subscribedAPI)
+
+		for api := range subscribedAPI {
+			c.listCurrentAPI[subscribedAPI[api]] = struct{}{}
 		}
 	}
 }
@@ -80,12 +88,20 @@ func (c *connection) writePump() {
 	for {
 		select {
 		case message, ok := <-c.send:
+
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
 				return
 			}
-			if err := c.write(websocket.TextMessage, message); err != nil {
-				return
+			var apiMessage ApiMessage
+			json.Unmarshal(message, &apiMessage)
+
+			_, ok2 := c.listCurrentAPI[apiMessage.Type]
+
+			if ok2 {
+				if err := c.write(websocket.TextMessage, message); err != nil {
+					return
+				}
 			}
 		case <-ticker.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
@@ -106,20 +122,25 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	c := &connection{send: make(chan []byte, 256), ws: ws}
+	c := &connection{send: make(chan []byte, 256), ws: ws, listCurrentAPI: make(map[string]struct{})}
 	h.register <- c
 	go c.writePump()
 	c.readPump()
 }
 
 func wsSend(w http.ResponseWriter, r *http.Request) {
-	message := []byte("")
+
+	message := ApiMessage{}
+	apiType := "chat"
+
 	if r.FormValue("m") != "" {
-		message = []byte(r.FormValue("m"))
+		message = ApiMessage{apiType, r.FormValue("m")}
 	} else {
-		message = []byte("New message send from the server")
+		message = ApiMessage{apiType, "New message send from the server"}
 	}
-	h.broadcast <- message
+
+	messageJSON, _ := json.Marshal(message)
+	h.broadcast <- messageJSON
 }
 
 func wsSendJSON(w http.ResponseWriter, r *http.Request) {
@@ -130,17 +151,19 @@ func wsSendJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	robots, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
+
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	var f interface{}
-	json.Unmarshal(robots, &f)
+	var hockeyData interface{}
+	json.Unmarshal(robots, &hockeyData)
 
-	message := ApiMessage{"hockey", f}
-	b, _ := json.Marshal(message)
-	h.broadcast <- b
+	apiMessage := ApiMessage{"hockey", hockeyData}
+	messageToSend, _ := json.Marshal(apiMessage)
+
+	h.broadcast <- messageToSend
 }
 
 type ApiMessage struct {
