@@ -1,4 +1,4 @@
-package main
+package hub
 
 import (
 	"log"
@@ -27,7 +27,10 @@ var h = hub{
 	connections: make(map[*connection]struct{}),
 }
 
-func (h *hub) run() {
+func GetHub() *hub {
+	return &h
+}
+func (h *hub) Run() {
 	for {
 		select {
 		case c := <-h.register:

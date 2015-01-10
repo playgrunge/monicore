@@ -4,19 +4,22 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/playgrunge/monicore/api"
+	"github.com/playgrunge/monicore/hub"
 	"log"
 	"net/http"
 )
 
 func main() {
 	r := mux.NewRouter()
-	go h.run()
-	http.HandleFunc("/websocket", serveWs)
-	http.HandleFunc("/wsSend", wsSend)
-	http.HandleFunc("/wsSendJSON", wsSendJSON)
+	http.HandleFunc("/websocket", hub.ServeWs)
+	http.HandleFunc("/wsSend", hub.WsSend)
+	http.HandleFunc("/wsSendJSON", hub.WsSendJSON)
 	r.HandleFunc("/api/{key}", renderApi)
 	r.PathPrefix("/").Handler(NoCacheFileServer(http.Dir("./doc/")))
 	http.Handle("/", r)
+
+	h := hub.GetHub()
+	go h.Run()
 
 	log.Println("Listening...")
 	http.ListenAndServe(":3000", nil)

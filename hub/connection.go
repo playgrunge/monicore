@@ -1,4 +1,4 @@
-package main
+package hub
 
 import (
 	"encoding/json"
@@ -112,7 +112,7 @@ func (c *connection) writePump() {
 }
 
 // serverWs handles websocket requests from the peer.
-func serveWs(w http.ResponseWriter, r *http.Request) {
+func ServeWs(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
 		return
@@ -128,7 +128,7 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	c.readPump()
 }
 
-func wsSend(w http.ResponseWriter, r *http.Request) {
+func WsSend(w http.ResponseWriter, r *http.Request) {
 
 	message := ApiMessage{}
 	apiType := "chat"
@@ -143,7 +143,7 @@ func wsSend(w http.ResponseWriter, r *http.Request) {
 	h.broadcast <- messageJSON
 }
 
-func wsSendJSON(w http.ResponseWriter, r *http.Request) {
+func WsSendJSON(w http.ResponseWriter, r *http.Request) {
 	res, err := http.Get("http://api.hockeystreams.com/Scores?key=" + api.GetConfig().Hockeystream.Key)
 	if err != nil {
 		log.Println(err)
