@@ -11,7 +11,7 @@ type hub struct {
 	connections map[*connection]struct{}
 
 	// Inbound messages from the connections.
-	broadcast chan []byte
+	Broadcast chan []byte
 
 	// Register requests from the connections.
 	register chan *connection
@@ -21,7 +21,7 @@ type hub struct {
 }
 
 var h = hub{
-	broadcast:   make(chan []byte),
+	Broadcast:   make(chan []byte),
 	register:    make(chan *connection),
 	unregister:  make(chan *connection),
 	connections: make(map[*connection]struct{}),
@@ -42,7 +42,7 @@ func (h *hub) Run() {
 				delete(h.connections, c)
 				close(c.send)
 			}
-		case m := <-h.broadcast:
+		case m := <-h.Broadcast:
 			log.Println("Send data...")
 			for c := range h.connections {
 				select {

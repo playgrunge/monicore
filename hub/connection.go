@@ -3,8 +3,6 @@ package hub
 import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
-	"github.com/playgrunge/monicore/api"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -40,7 +38,7 @@ type connection struct {
 	// Buffered channel of outbound messages.
 	send chan []byte
 
-	listCurrentAPI map[string]struct{}
+	messageTypes map[string]struct{}
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -63,11 +61,11 @@ func (c *connection) readPump() {
 		if err != nil {
 			break
 		}
-		var subscribedAPI []string
-		json.Unmarshal(message, &subscribedAPI)
+		var clientMessageTypes []string
+		json.Unmarshal(message, &clientMessageTypes)
 
-		for api := range subscribedAPI {
-			c.listCurrentAPI[subscribedAPI[api]] = struct{}{}
+		for t := range clientMessageTypes {
+			c.messageTypes[clientMessageTypes[t]] = struct{}{}
 		}
 	}
 }
@@ -93,10 +91,10 @@ func (c *connection) writePump() {
 				c.write(websocket.CloseMessage, []byte{})
 				return
 			}
-			var apiMessage ApiMessage
-			json.Unmarshal(message, &apiMessage)
+			var messageJSON Message
+			json.Unmarshal(message, &messageJSON)
 
-			_, ok2 := c.listCurrentAPI[apiMessage.Type]
+			_, ok2 := c.messageTypes[messageJSON.Type]
 
 			if ok2 {
 				if err := c.write(websocket.TextMessage, message); err != nil {
@@ -122,51 +120,13 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	c := &connection{send: make(chan []byte, 256), ws: ws, listCurrentAPI: make(map[string]struct{})}
+	c := &connection{send: make(chan []byte, 256), ws: ws, messageTypes: make(map[string]struct{})}
 	h.register <- c
 	go c.writePump()
 	c.readPump()
 }
 
-func WsSend(w http.ResponseWriter, r *http.Request) {
-
-	message := ApiMessage{}
-	apiType := "chat"
-
-	if r.FormValue("m") != "" {
-		message = ApiMessage{apiType, r.FormValue("m")}
-	} else {
-		message = ApiMessage{apiType, "New message send from the server"}
-	}
-
-	messageJSON, _ := json.Marshal(message)
-	h.broadcast <- messageJSON
-}
-
-func WsSendJSON(w http.ResponseWriter, r *http.Request) {
-	res, err := http.Get("http://api.hockeystreams.com/Scores?key=" + api.GetConfig().Hockeystream.Key)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	robots, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	var hockeyData interface{}
-	json.Unmarshal(robots, &hockeyData)
-
-	apiMessage := ApiMessage{"hockey", hockeyData}
-	messageToSend, _ := json.Marshal(apiMessage)
-
-	h.broadcast <- messageToSend
-}
-
-type ApiMessage struct {
+type Message struct {
 	Type string      `json:"type"`
 	Data interface{} `json:"data"`
 }

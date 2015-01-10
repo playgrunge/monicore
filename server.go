@@ -5,20 +5,22 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/playgrunge/monicore/api"
 	"github.com/playgrunge/monicore/hub"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
 
+var h = hub.GetHub()
+
 func main() {
 	r := mux.NewRouter()
 	http.HandleFunc("/websocket", hub.ServeWs)
-	http.HandleFunc("/wsSend", hub.WsSend)
-	http.HandleFunc("/wsSendJSON", hub.WsSendJSON)
+	http.HandleFunc("/wsSend", wsSend)
+	http.HandleFunc("/wsSendJSON", wsSendJSON)
 	r.HandleFunc("/api/{key}", renderApi)
 	r.PathPrefix("/").Handler(NoCacheFileServer(http.Dir("./doc/")))
 	http.Handle("/", r)
 
-	h := hub.GetHub()
 	go h.Run()
 
 	log.Println("Listening...")
@@ -86,6 +88,44 @@ func (n *noCacheFileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
 	http.FileServer(n.root).ServeHTTP(w, r)
+}
+
+func wsSend(w http.ResponseWriter, r *http.Request) {
+
+	message := hub.Message{}
+	apiType := "chat"
+
+	if r.FormValue("m") != "" {
+		message = hub.Message{apiType, r.FormValue("m")}
+	} else {
+		message = hub.Message{apiType, "New message send from the server"}
+	}
+
+	messageJSON, _ := json.Marshal(message)
+	h.Broadcast <- messageJSON
+}
+
+func wsSendJSON(w http.ResponseWriter, r *http.Request) {
+	res, err := http.Get("http://api.hockeystreams.com/Scores?key=" + api.GetConfig().Hockeystream.Key)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	robots, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	var hockeyData interface{}
+	json.Unmarshal(robots, &hockeyData)
+
+	apiMessage := hub.Message{"hockey", hockeyData}
+	messageToSend, _ := json.Marshal(apiMessage)
+
+	h.Broadcast <- messageToSend
 }
 
 type Message struct {
