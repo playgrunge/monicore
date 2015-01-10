@@ -101,8 +101,7 @@ func wsSend(w http.ResponseWriter, r *http.Request) {
 		message = hub.Message{apiType, "New message send from the server"}
 	}
 
-	messageJSON, _ := json.Marshal(message)
-	h.Broadcast <- messageJSON
+	h.Broadcast <- &message
 }
 
 func wsSendJSON(w http.ResponseWriter, r *http.Request) {
@@ -122,10 +121,9 @@ func wsSendJSON(w http.ResponseWriter, r *http.Request) {
 	var hockeyData interface{}
 	json.Unmarshal(robots, &hockeyData)
 
-	apiMessage := hub.Message{"hockey", hockeyData}
-	messageToSend, _ := json.Marshal(apiMessage)
+	message := hub.Message{"hockey", hockeyData}
 
-	h.Broadcast <- messageToSend
+	h.Broadcast <- &message
 }
 
 type Message struct {

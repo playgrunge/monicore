@@ -11,7 +11,7 @@ type hub struct {
 	connections map[*connection]struct{}
 
 	// Inbound messages from the connections.
-	Broadcast chan []byte
+	Broadcast chan *Message
 
 	// Register requests from the connections.
 	register chan *connection
@@ -21,7 +21,7 @@ type hub struct {
 }
 
 var h = hub{
-	Broadcast:   make(chan []byte),
+	Broadcast:   make(chan *Message),
 	register:    make(chan *connection),
 	unregister:  make(chan *connection),
 	connections: make(map[*connection]struct{}),

@@ -36,7 +36,7 @@ type connection struct {
 	ws *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	send chan []byte
+	send chan *Message
 
 	messageTypes map[string]struct{}
 }
@@ -91,13 +91,12 @@ func (c *connection) writePump() {
 				c.write(websocket.CloseMessage, []byte{})
 				return
 			}
-			var messageJSON Message
-			json.Unmarshal(message, &messageJSON)
 
-			_, ok2 := c.messageTypes[messageJSON.Type]
+			_, ok2 := c.messageTypes[message.Type]
 
 			if ok2 {
-				if err := c.write(websocket.TextMessage, message); err != nil {
+				jsonMessage, _ := json.Marshal(message)
+				if err := c.write(websocket.TextMessage, jsonMessage); err != nil {
 					return
 				}
 			}
@@ -120,7 +119,7 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	c := &connection{send: make(chan []byte, 256), ws: ws, messageTypes: make(map[string]struct{})}
+	c := &connection{send: make(chan *Message, 256), ws: ws, messageTypes: make(map[string]struct{})}
 	h.register <- c
 	go c.writePump()
 	c.readPump()
