@@ -1,7 +1,6 @@
 package hub
 
 import (
-	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
@@ -57,12 +56,11 @@ func (c *connection) readPump() {
 		})
 
 	for {
-		_, message, err := c.ws.ReadMessage()
+		clientMessageTypes := []string{}
+		err := c.ws.ReadJSON(&clientMessageTypes)
 		if err != nil {
 			break
 		}
-		var clientMessageTypes []string
-		json.Unmarshal(message, &clientMessageTypes)
 
 		c.messageTypes = make(map[string]struct{})
 
@@ -72,10 +70,14 @@ func (c *connection) readPump() {
 	}
 }
 
-// write writes a message with the given message type and payload.
-func (c *connection) write(mt int, payload []byte) error {
+func (c *connection) write(mt int, message []byte) error {
 	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
-	return c.ws.WriteMessage(mt, payload)
+	return c.ws.WriteMessage(mt, message)
+}
+
+func (c *connection) writeJSON(message interface{}) error {
+	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
+	return c.ws.WriteJSON(message)
 }
 
 // writePump pumps messages from the hub to the websocket connection.
@@ -97,8 +99,7 @@ func (c *connection) writePump() {
 			_, ok2 := c.messageTypes[message.Type]
 
 			if ok2 {
-				jsonMessage, _ := json.Marshal(message)
-				if err := c.write(websocket.TextMessage, jsonMessage); err != nil {
+				if err := c.writeJSON(message); err != nil {
 					return
 				}
 			}
