@@ -5,7 +5,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/playgrunge/monicore/api"
 	"github.com/playgrunge/monicore/hub"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -105,21 +104,14 @@ func wsSend(w http.ResponseWriter, r *http.Request) {
 }
 
 func wsSendJSON(w http.ResponseWriter, r *http.Request) {
-	res, err := http.Get("http://api.hockeystreams.com/Scores?key=" + api.GetConfig().Hockeystream.Key)
+	hockeyApi := new(api.HockeyApi)
+	res, err := hockeyApi.GetApi()
 	if err != nil {
-		log.Println(err)
-		return
-	}
-	robots, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-
-	if err != nil {
-		log.Fatal(err)
 		return
 	}
 
 	var hockeyData interface{}
-	json.Unmarshal(robots, &hockeyData)
+	json.Unmarshal(res, &hockeyData)
 
 	message := hub.Message{"hockey", hockeyData}
 
