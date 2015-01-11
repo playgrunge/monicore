@@ -64,6 +64,8 @@ func (c *connection) readPump() {
 		var clientMessageTypes []string
 		json.Unmarshal(message, &clientMessageTypes)
 
+		c.messageTypes = make(map[string]struct{})
+
 		for t := range clientMessageTypes {
 			c.messageTypes[clientMessageTypes[t]] = struct{}{}
 		}
