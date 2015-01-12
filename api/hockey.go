@@ -1,11 +1,11 @@
 package api
 
 import (
+	"encoding/json"
+	"gopkg.in/mgo.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"encoding/json"
-	"github.com/Igor-K/mgo"
 	"reflect"
 )
 
@@ -38,31 +38,31 @@ func (h *HockeyApi) GetApi() ([]byte, error) {
 	return robots, nil
 }
 
-func (h *HockeyApi) GetData() (map[string]interface{}) {
+func (h *HockeyApi) GetData() map[string]interface{} {
 	session, err := mgo.Dial("localhost")
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer session.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer session.Close()
 
-    c := session.DB("monicore").C("hockey")
-    var r map[string]interface{}
-    err = c.Find(nil).Sort("$natural:-1").Limit(1).One(&r);
-    delete(r, "_id")
-    return r
+	c := session.DB("monicore").C("hockey")
+	var r map[string]interface{}
+	err = c.Find(nil).Sort("$natural:-1").Limit(1).One(&r)
+	delete(r, "_id")
+	return r
 }
 
 func (h *HockeyApi) updateData(data []byte) {
 	session, err := mgo.Dial("localhost")
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer session.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer session.Close()
 
-    c := session.DB("monicore").C("hockey")
-    var r map[string]interface{}
-    err = c.Find(nil).Sort("$natural:-1").Limit(1).One(&r);
-    delete(r, "_id")
+	c := session.DB("monicore").C("hockey")
+	var r map[string]interface{}
+	err = c.Find(nil).Sort("$natural:-1").Limit(1).One(&r)
+	delete(r, "_id")
 
 	log.Println("Data compared...")
 	var d map[string]interface{}
@@ -74,5 +74,5 @@ func (h *HockeyApi) updateData(data []byte) {
 		err = c.Insert(d)
 		log.Println("Data updated")
 	}
-	
+
 }
