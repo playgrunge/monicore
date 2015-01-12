@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"time"
 )
 
 type HockeyApi struct{}
@@ -47,8 +48,10 @@ func (h *HockeyApi) GetData() map[string]interface{} {
 
 	c := session.DB("monicore").C("hockey")
 	var r map[string]interface{}
-	err = c.Find(nil).Sort("$natural:-1").Limit(1).One(&r)
+	err = c.Find(nil).Sort("-timeStamp").Limit(1).One(&r)
 	delete(r, "_id")
+	delete(r, "timeStamp")
+
 	return r
 }
 
@@ -61,16 +64,19 @@ func (h *HockeyApi) updateData(data []byte) {
 
 	c := session.DB("monicore").C("hockey")
 	var r map[string]interface{}
-	err = c.Find(nil).Sort("$natural:-1").Limit(1).One(&r)
+	err = c.Find(nil).Sort("-timeStamp").Limit(1).One(&r)
 	delete(r, "_id")
+	delete(r, "timeStamp")
 
 	log.Println("Data compared...")
 	var d map[string]interface{}
 	json.Unmarshal(data, &d)
+
 	eq := reflect.DeepEqual(r, d)
 	if eq {
 		log.Println("Data identical")
 	} else {
+		d["timeStamp"] = time.Now()
 		err = c.Insert(d)
 		log.Println("Data updated")
 	}
