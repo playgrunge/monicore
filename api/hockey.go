@@ -69,14 +69,11 @@ func (h *HockeyApi) updateData(data []byte) {
 	delete(r, "_id")
 	delete(r, "timeStamp")
 
-	log.Println("Data compared...")
 	var d map[string]interface{}
 	json.Unmarshal(data, &d)
 
 	eq := reflect.DeepEqual(r, d)
-	if eq {
-		log.Println("Data identical")
-	} else {
+	if !eq {
 		d["timeStamp"] = time.Now()
 		err = c.Insert(d)
 		message := hub.Message{"hockey", d}

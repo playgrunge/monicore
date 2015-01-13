@@ -29,14 +29,17 @@ func main() {
 }
 
 func run() {
-	for {
-		time.Sleep(10 * time.Second)
+	ticker := time.NewTicker(time.Second * 10)
+	log.Println("Ticker started")
+	for _ = range ticker.C {
 		if val, ok := routes["hockey"]; ok {
 			if t, ok := val.(api.ApiRequest); ok {
 				t.GetApi()
 			}
 		}
 	}
+	defer ticker.Stop()
+	log.Println("Ticker stopped")
 }
 
 func renderApi(w http.ResponseWriter, r *http.Request) {
