@@ -31,3 +31,7 @@ func (a *AirportApi) GetApi() ([]byte, error) {
 	}
 	return robots, err
 }
+
+func (a *AirportApi) updateData(data []byte) {
+
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/playgrunge/monicore/hub"
 	"log"
 	"net/http"
+	"time"
 )
 
 var h = hub.GetHub()
@@ -21,9 +22,21 @@ func main() {
 	http.Handle("/", r)
 
 	go h.Run()
+	go run()
 
 	log.Println("Listening...")
 	http.ListenAndServe(":3000", nil)
+}
+
+func run() {
+	for {
+		time.Sleep(10 * time.Second)
+		if val, ok := routes["hockey"]; ok {
+			if t, ok := val.(api.ApiRequest); ok {
+				t.GetApi()
+			}
+		}
+	}
 }
 
 func renderApi(w http.ResponseWriter, r *http.Request) {

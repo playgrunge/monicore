@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/playgrunge/monicore/hub"
 	"gopkg.in/mgo.v2"
 	"io/ioutil"
 	"log"
@@ -78,6 +79,8 @@ func (h *HockeyApi) updateData(data []byte) {
 	} else {
 		d["timeStamp"] = time.Now()
 		err = c.Insert(d)
+		message := hub.Message{"hockey", d}
+		hub.GetHub().Broadcast <- &message
 		log.Println("Data updated")
 	}
 

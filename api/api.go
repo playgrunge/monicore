@@ -7,4 +7,5 @@ import (
 type ApiRequest interface {
 	SendApi(w http.ResponseWriter, r *http.Request)
 	GetApi() ([]byte, error)
+	updateData(data []byte)
 }
