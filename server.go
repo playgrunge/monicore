@@ -60,30 +60,8 @@ func renderApi(w http.ResponseWriter, r *http.Request) {
 
 // define global map;
 var routes = map[string]interface{}{
-	"bye":     bye_api,
-	"test":    test_api,
-	"json":    json_api,
 	"hockey":  new(api.HockeyApi),
 	"airport": new(api.AirportApi),
-}
-
-func bye_api(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Au revoir!!!"))
-}
-func test_api(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("test"))
-}
-func json_api(w http.ResponseWriter, r *http.Request) {
-	m := map[string]Message{
-		"0": Message{"Alice", "Hello", 1294706395881547000},
-		"1": Message{"Bob", "Bye", 1294706595681746000},
-	}
-	b, err := json.Marshal(m)
-	if err != nil {
-		log.Println(err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
