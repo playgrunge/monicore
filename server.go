@@ -32,7 +32,7 @@ func run() {
 	ticker := time.NewTicker(time.Second * 10)
 	log.Println("Ticker started")
 	for _ = range ticker.C {
-		if val, ok := routes["hockey"]; ok {
+		if val, ok := routes[api.HockeyName]; ok {
 			if t, ok := val.(api.ApiRequest); ok {
 				t.GetApi()
 			}
@@ -60,8 +60,8 @@ func renderApi(w http.ResponseWriter, r *http.Request) {
 
 // define global map;
 var routes = map[string]interface{}{
-	"hockey":  new(api.HockeyApi),
-	"airport": new(api.AirportApi),
+	api.HockeyName:  new(api.HockeyApi),
+	api.AirportName: new(api.AirportApi),
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +107,7 @@ func wsSendJSON(w http.ResponseWriter, r *http.Request) {
 	var hockeyData interface{}
 	json.Unmarshal(res, &hockeyData)
 
-	message := hub.Message{"hockey", hockeyData}
+	message := hub.Message{api.HockeyName, hockeyData}
 
 	h.Broadcast <- &message
 }
