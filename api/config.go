@@ -14,6 +14,9 @@ type Config struct {
 		AppId  string
 		AppKey string
 	}
+	Openweathermap struct {
+		AppId string
+	}
 }
 
 var (
