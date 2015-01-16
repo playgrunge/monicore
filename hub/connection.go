@@ -4,8 +4,11 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
+
+var mutexMessageTypes = &sync.Mutex{}
 
 const (
 	// Time allowed to write a message to the peer.
@@ -62,11 +65,15 @@ func (c *connection) readPump() {
 			break
 		}
 
+		mutexMessageTypes.Lock()
+
 		c.messageTypes = make(map[string]struct{})
 
 		for t := range clientMessageTypes {
 			c.messageTypes[clientMessageTypes[t]] = struct{}{}
 		}
+
+		mutexMessageTypes.Unlock()
 	}
 }
 
@@ -96,7 +103,9 @@ func (c *connection) writePump() {
 				return
 			}
 
+			mutexMessageTypes.Lock()
 			_, ok2 := c.messageTypes[message.Type]
+			mutexMessageTypes.Unlock()
 
 			if ok2 {
 				if err := c.writeJSON(message); err != nil {

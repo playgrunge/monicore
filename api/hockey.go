@@ -13,6 +13,8 @@ import (
 
 type HockeyApi struct{}
 
+const HockeyName = "hockey"
+
 func (h *HockeyApi) SendApi(w http.ResponseWriter, r *http.Request) {
 	res, err := h.GetApi()
 	if err != nil {
@@ -47,7 +49,7 @@ func (h *HockeyApi) GetData() map[string]interface{} {
 	}
 	defer session.Close()
 
-	c := session.DB("monicore").C("hockey")
+	c := session.DB("monicore").C(HockeyName)
 	var r map[string]interface{}
 	err = c.Find(nil).Sort("-timeStamp").Limit(1).One(&r)
 	delete(r, "_id")
@@ -63,7 +65,7 @@ func (h *HockeyApi) updateData(data []byte) {
 	}
 	defer session.Close()
 
-	c := session.DB("monicore").C("hockey")
+	c := session.DB("monicore").C(HockeyName)
 	var r map[string]interface{}
 	err = c.Find(nil).Sort("-timeStamp").Limit(1).One(&r)
 	delete(r, "_id")
@@ -76,7 +78,7 @@ func (h *HockeyApi) updateData(data []byte) {
 	if !eq {
 		d["timeStamp"] = time.Now()
 		err = c.Insert(d)
-		message := hub.Message{"hockey", d}
+		message := hub.Message{HockeyName, d}
 		hub.GetHub().Broadcast <- &message
 		log.Println("Data updated")
 	}

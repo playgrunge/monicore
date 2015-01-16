@@ -8,6 +8,8 @@ import (
 
 type AirportApi struct{}
 
+const AirportName = "airport"
+
 func (a *AirportApi) SendApi(w http.ResponseWriter, r *http.Request) {
 	typ := r.FormValue("t")
 	if len(typ) == 0 {

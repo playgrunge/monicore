@@ -13,6 +13,8 @@ import (
 
 type WeatherApi struct{}
 
+const WeatherName = "weather"
+
 func (a *WeatherApi) SendApi(w http.ResponseWriter, r *http.Request) {
 	typ := r.FormValue("t")
 	if len(typ) == 0 {
