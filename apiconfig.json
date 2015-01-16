@@ -5,5 +5,8 @@
 "flightstats": {
 	"appId": "xxxxxxxx",
 	"appKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+},
+"openweathermap": {
+	"appId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 }
 }
