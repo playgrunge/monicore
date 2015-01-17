@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/playgrunge/monicore/api"
-	"github.com/playgrunge/monicore/hub"
+	"github.com/playgrunge/monicore/control"
+	"github.com/playgrunge/monicore/core/api"
+	"github.com/playgrunge/monicore/core/hub"
 	"log"
 	"net/http"
 	"time"
@@ -32,7 +33,7 @@ func run() {
 	ticker := time.NewTicker(time.Minute * 10)
 	log.Println("Ticker started")
 	for _ = range ticker.C {
-		if val, ok := routes[api.HockeyName]; ok {
+		if val, ok := routes[control.HockeyName]; ok {
 			if t, ok := val.(api.ApiRequest); ok {
 				t.GetApi()
 			}
@@ -48,11 +49,13 @@ func renderApi(w http.ResponseWriter, r *http.Request) {
 	key := mux.Vars(r)["key"]
 
 	if val, ok := routes[key]; ok {
-		if t, ok := val.(api.ApiRequest); ok {
-			t.SendApi(w, r)
-		} else {
-			val.(func(http.ResponseWriter, *http.Request))(w, r)
+		switch v := val.(type) {
+		case api.ApiRequest:
+			v.SendApi(w, r)
+		default:
+			v.(func(http.ResponseWriter, *http.Request))(w, r)
 		}
+
 	} else {
 		notFound(w, r)
 	}
@@ -60,9 +63,9 @@ func renderApi(w http.ResponseWriter, r *http.Request) {
 
 // define global map;
 var routes = map[string]interface{}{
-	api.HockeyName:  new(api.HockeyApi),
-	api.AirportName: new(api.AirportApi),
-	api.WeatherName: new(api.WeatherApi),
+	control.HockeyName:  new(control.HockeyApi),
+	control.AirportName: new(control.AirportApi),
+	control.WeatherName: new(control.WeatherApi),
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +102,7 @@ func wsSend(w http.ResponseWriter, r *http.Request) {
 }
 
 func wsSendJSON(w http.ResponseWriter, r *http.Request) {
-	hockeyApi := new(api.HockeyApi)
+	hockeyApi := new(control.HockeyApi)
 	res, err := hockeyApi.GetApi()
 	if err != nil {
 		return
@@ -108,7 +111,7 @@ func wsSendJSON(w http.ResponseWriter, r *http.Request) {
 	var hockeyData interface{}
 	json.Unmarshal(res, &hockeyData)
 
-	message := hub.Message{api.HockeyName, hockeyData}
+	message := hub.Message{control.HockeyName, hockeyData}
 
 	h.Broadcast <- &message
 }

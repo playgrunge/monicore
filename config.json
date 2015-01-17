@@ -1,0 +1,12 @@
+{
+"hockeystream": {
+	"key": "126f95d100edd900a4701c8a48c1caa7"
+},
+"flightstats": {
+	"appId": "e454b3d5",
+	"appKey": "10fc487d600bf73c4b511e9327d44782"
+},
+"openweathermap": {
+	"appId": "f916ddd943f6efa32c1c7012ee4dcbce"
+}
+}

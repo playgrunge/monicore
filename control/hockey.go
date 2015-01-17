@@ -1,8 +1,10 @@
-package api
+package control
 
 import (
 	"encoding/json"
-	"github.com/playgrunge/monicore/hub"
+	"github.com/playgrunge/monicore/core/api"
+	"github.com/playgrunge/monicore/core/config"
+	"github.com/playgrunge/monicore/core/hub"
 	"gopkg.in/mgo.v2"
 	"io/ioutil"
 	"log"
@@ -11,7 +13,9 @@ import (
 	"time"
 )
 
-type HockeyApi struct{}
+type HockeyApi struct {
+	api.ApiRequest
+}
 
 const HockeyName = "hockey"
 
@@ -26,7 +30,7 @@ func (h *HockeyApi) SendApi(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HockeyApi) GetApi() ([]byte, error) {
-	res, err := http.Get("http://api.hockeystreams.com/Scores?key=" + GetConfig().Hockeystream.Key)
+	res, err := http.Get("http://api.hockeystreams.com/Scores?key=" + config.GetConfig().Hockeystream.Key)
 	if err != nil {
 		log.Println(err)
 		return nil, err
