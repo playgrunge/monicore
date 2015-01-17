@@ -2,7 +2,6 @@ package control
 
 import (
 	"github.com/playgrunge/monicore/core/api"
-	"github.com/playgrunge/monicore/core/config"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -38,7 +37,7 @@ func (a *AirportApi) SendApi(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AirportApi) GetApi() ([]byte, error) {
-	res, err := http.Get("http://api.flightstats.com/flex/airports/rest/v1/json/iata/YUL?appId=" + config.GetConfig().Flightstats.AppId + "&appKey=" + config.GetConfig().Flightstats.AppKey + "&utc=false&numHours=1&maxFlights=5")
+	res, err := http.Get("http://api.flightstats.com/flex/airports/rest/v1/json/iata/YUL?appId=" + GetConfig().Flightstats.AppId + "&appKey=" + GetConfig().Flightstats.AppKey + "&utc=false&numHours=1&maxFlights=5")
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -53,7 +52,7 @@ func (a *AirportApi) GetApi() ([]byte, error) {
 }
 
 func (a *AirportApi) GetWeather() ([]byte, error) {
-	res, err := http.Get("http://api.flightstats.com/flex/weather/rest/v1/json/all/YUL?appId=" + config.GetConfig().Flightstats.AppId + "&appKey=" + config.GetConfig().Flightstats.AppKey + "&utc=false&numHours=1&maxFlights=5")
+	res, err := http.Get("http://api.flightstats.com/flex/weather/rest/v1/json/all/YUL?appId=" + GetConfig().Flightstats.AppId + "&appKey=" + GetConfig().Flightstats.AppKey + "&utc=false&numHours=1&maxFlights=5")
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -68,7 +67,7 @@ func (a *AirportApi) GetWeather() ([]byte, error) {
 }
 
 func (a *AirportApi) GetDelay() ([]byte, error) {
-	res, err := http.Get("http://api.flightstats.com/flex/delayindex/rest/v1/json/airports/YUL?appId=" + config.GetConfig().Flightstats.AppId + "&appKey=" + config.GetConfig().Flightstats.AppKey + "&utc=false&numHours=1&maxFlights=5")
+	res, err := http.Get("http://api.flightstats.com/flex/delayindex/rest/v1/json/airports/YUL?appId=" + GetConfig().Flightstats.AppId + "&appKey=" + GetConfig().Flightstats.AppKey + "&utc=false&numHours=1&maxFlights=5")
 	if err != nil {
 		log.Println(err)
 		return nil, err

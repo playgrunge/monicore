@@ -7,29 +7,24 @@ import (
 	"reflect"
 )
 
-type IConfig interface {
-	GetConfig() interface{}
-	loadConfig() interface{}
+func New(configFile string, conf interface{}) Config {
+	return Config{configFile, conf, nil}
 }
 
-func NewConfig(configFile string, conf interface{}) config {
-	return config{configFile, conf, nil}
-}
-
-type config struct {
+type Config struct {
 	configFile string
 	config     interface{}
 	configData interface{}
 }
 
-func (c *config) GetConfig() interface{} {
+func (c *Config) GetConfig() interface{} {
 	if reflect.TypeOf(c.configData) == nil {
 		c.configData = c.loadConfig()
 	}
 	return c.configData
 }
 
-func (c *config) loadConfig() interface{} {
+func (c *Config) loadConfig() interface{} {
 	log.Println("loading config from file...")
 	file, err := ioutil.ReadFile(c.configFile)
 	if err != nil {
@@ -40,34 +35,4 @@ func (c *config) loadConfig() interface{} {
 		log.Println("parse config: ", err)
 	}
 	return temp
-}
-
-type ApiConfig struct {
-	Hockeystream struct {
-		Key string
-	}
-	Flightstats struct {
-		AppId  string
-		AppKey string
-	}
-	Openweathermap struct {
-		AppId string
-	}
-}
-
-var apiConfig config
-var apiInit bool
-
-func GetConfig() ApiConfig {
-	if !apiInit {
-		apiConfig = NewConfig("config.json", new(ApiConfig))
-		apiInit = true
-	}
-	if r, ok := apiConfig.GetConfig().(*ApiConfig); ok {
-		return *r
-	} else {
-		log.Println("boo!")
-		var config ApiConfig
-		return config
-	}
 }

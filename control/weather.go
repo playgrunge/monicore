@@ -3,7 +3,6 @@ package control
 import (
 	"encoding/json"
 	"github.com/playgrunge/monicore/core/api"
-	"github.com/playgrunge/monicore/core/config"
 	"github.com/playgrunge/monicore/core/hub"
 	"gopkg.in/mgo.v2"
 	"io/ioutil"
@@ -42,7 +41,7 @@ func (a *WeatherApi) SendApi(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *WeatherApi) GetApi() ([]byte, error) {
-	res, err := http.Get("http://api.openweathermap.org/data/2.5/weather?q=montreal&APPID=" + config.GetConfig().Openweathermap.AppId)
+	res, err := http.Get("http://api.openweathermap.org/data/2.5/weather?q=montreal&APPID=" + GetConfig().Openweathermap.AppId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -59,7 +58,7 @@ func (a *WeatherApi) GetApi() ([]byte, error) {
 }
 
 func (a *WeatherApi) GetForecast() ([]byte, error) {
-	res, err := http.Get("http://api.openweathermap.org/data/2.5/forecast/city?q=montreal&APPID=" + config.GetConfig().Openweathermap.AppId)
+	res, err := http.Get("http://api.openweathermap.org/data/2.5/forecast/city?q=montreal&APPID=" + GetConfig().Openweathermap.AppId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
