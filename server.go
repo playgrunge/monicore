@@ -29,7 +29,7 @@ func main() {
 }
 
 func run() {
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Minute * 10)
 	log.Println("Ticker started")
 	for _ = range ticker.C {
 		if val, ok := routes[api.HockeyName]; ok {
