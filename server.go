@@ -23,20 +23,20 @@ func main() {
 	http.Handle("/", r)
 
 	go h.Run()
-	go run()
+	go runTaskUpdateData(control.HockeyName, time.Minute*10)
 
 	log.Println("Listening...")
 	http.ListenAndServe(":3000", nil)
 }
 
-func run() {
-	ticker := time.NewTicker(time.Minute * 10)
+func runTaskUpdateData(dataType string, tickerTime time.Duration) {
+	ticker := time.NewTicker(tickerTime)
 	defer ticker.Stop()
 	log.Println("Ticker started")
 	for _ = range ticker.C {
-		if val, ok := routes[control.HockeyName]; ok {
+		if val, ok := routes[dataType]; ok {
 			if t, ok := val.(api.ApiRequest); ok {
-				broadcastMessageIfNew(control.HockeyName, t)
+				broadcastMessageIfNew(dataType, t)
 			}
 		}
 	}
