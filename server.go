@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/playgrunge/monicore/control"
 	"github.com/playgrunge/monicore/core/api"
 	"github.com/playgrunge/monicore/core/hub"
+	"github.com/playgrunge/monicore/service"
 	"log"
 	"net/http"
 	"time"
@@ -31,16 +31,26 @@ func main() {
 
 func run() {
 	ticker := time.NewTicker(time.Minute * 10)
+	defer ticker.Stop()
 	log.Println("Ticker started")
 	for _ = range ticker.C {
 		if val, ok := routes[control.HockeyName]; ok {
 			if t, ok := val.(api.ApiRequest); ok {
-				t.GetApi()
+				broadcastMessageIfNew(control.HockeyName, t)
 			}
 		}
 	}
-	defer ticker.Stop()
 	log.Println("Ticker stopped")
+}
+
+func broadcastMessageIfNew(dataType string, a api.ApiRequest) {
+	if val, _ := a.GetApi(); val != nil {
+		if isNew := service.UpdateNewData(dataType, val); isNew {
+			lastData := service.GetLastData(dataType)
+			message := hub.Message{dataType, lastData}
+			hub.GetHub().Broadcast <- &message
+		}
+	}
 }
 
 func renderApi(w http.ResponseWriter, r *http.Request) {
@@ -102,18 +112,11 @@ func wsSend(w http.ResponseWriter, r *http.Request) {
 }
 
 func wsSendJSON(w http.ResponseWriter, r *http.Request) {
-	hockeyApi := new(control.HockeyApi)
-	res, err := hockeyApi.GetApi()
-	if err != nil {
-		return
+	if val, ok := routes[control.HockeyName]; ok {
+		if t, ok := val.(api.ApiRequest); ok {
+			broadcastMessageIfNew(control.HockeyName, t)
+		}
 	}
-
-	var hockeyData interface{}
-	json.Unmarshal(res, &hockeyData)
-
-	message := hub.Message{control.HockeyName, hockeyData}
-
-	h.Broadcast <- &message
 }
 
 type Message struct {

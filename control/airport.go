@@ -80,6 +80,3 @@ func (a *AirportApi) GetDelay() ([]byte, error) {
 	}
 	return robots, err
 }
-
-func (a *AirportApi) updateData(data []byte) {
-}
