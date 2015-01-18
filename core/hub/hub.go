@@ -21,7 +21,7 @@ type hub struct {
 
 	ReceiveNewTypes chan *PairConTypes
 
-	SendToConnection chan *PairConMessages
+	SendToConnection chan *PairConMessage
 }
 
 var h = hub{
@@ -30,7 +30,7 @@ var h = hub{
 	unregister:       make(chan *connection),
 	connections:      make(map[*connection]struct{}),
 	ReceiveNewTypes:  make(chan *PairConTypes),
-	SendToConnection: make(chan *PairConMessages),
+	SendToConnection: make(chan *PairConMessage),
 }
 
 func GetHub() *hub {
@@ -79,7 +79,7 @@ type PairConTypes struct {
 	Types []string
 }
 
-type PairConMessages struct {
+type PairConMessage struct {
 	Con     *connection
 	Message *Message
 }

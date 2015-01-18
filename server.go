@@ -56,8 +56,8 @@ func listenForNewTypes() {
 							var d map[string]interface{}
 							json.Unmarshal(val, &d)
 							message := hub.Message{c.Types[i], d}
-							pairConMessages := &hub.PairConMessages{c.Con, &message}
-							h.SendToConnection <- pairConMessages
+							pairConMessage := &hub.PairConMessage{c.Con, &message}
+							h.SendToConnection <- pairConMessage
 						}
 					}
 				}
