@@ -59,10 +59,16 @@ func (h *hub) Run() {
 				}
 			}
 		case s := <-h.SendToConnection:
-			con := s.Con
+			c := s.Con
 			log.Println("Send message to connection")
-			if _, ok := h.connections[con]; ok {
-				con.send <- s.Message
+			if _, ok := h.connections[c]; ok {
+				select {
+				case c.send <- s.Message:
+				default:
+					close(c.send)
+					delete(h.connections, c)
+				}
+
 			}
 		}
 	}
