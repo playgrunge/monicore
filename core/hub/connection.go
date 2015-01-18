@@ -2,6 +2,7 @@ package hub
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/playgrunge/monicore/helper"
 	"log"
 	"net/http"
 	"sync"
@@ -65,15 +66,19 @@ func (c *connection) readPump() {
 			break
 		}
 
-		mutexMessageTypes.Lock()
-
-		c.messageTypes = make(map[string]struct{})
+		newMessageType := make(map[string]struct{})
 
 		for t := range clientMessageTypes {
-			c.messageTypes[clientMessageTypes[t]] = struct{}{}
+			newMessageType[clientMessageTypes[t]] = struct{}{}
 		}
 
+		newTypes := []string{}
+		mutexMessageTypes.Lock()
+		newTypes = helper.CompareMapKey(newMessageType, c.messageTypes)
+		c.messageTypes = newMessageType
 		mutexMessageTypes.Unlock()
+
+		h.ReceiveNewTypes <- &PairConTypes{c, newTypes}
 	}
 }
 

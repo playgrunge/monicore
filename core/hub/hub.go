@@ -18,13 +18,19 @@ type hub struct {
 
 	// Unregister requests from connections.
 	unregister chan *connection
+
+	ReceiveNewTypes chan *PairConTypes
+
+	SendToConnection chan *PairConMessages
 }
 
 var h = hub{
-	Broadcast:   make(chan *Message),
-	register:    make(chan *connection),
-	unregister:  make(chan *connection),
-	connections: make(map[*connection]struct{}),
+	Broadcast:        make(chan *Message),
+	register:         make(chan *connection),
+	unregister:       make(chan *connection),
+	connections:      make(map[*connection]struct{}),
+	ReceiveNewTypes:  make(chan *PairConTypes),
+	SendToConnection: make(chan *PairConMessages),
 }
 
 func GetHub() *hub {
@@ -43,7 +49,7 @@ func (h *hub) Run() {
 				close(c.send)
 			}
 		case m := <-h.Broadcast:
-			log.Println("Send data...")
+			log.Println("Broadcast data...")
 			for c := range h.connections {
 				select {
 				case c.send <- m:
@@ -52,6 +58,22 @@ func (h *hub) Run() {
 					delete(h.connections, c)
 				}
 			}
+		case s := <-h.SendToConnection:
+			con := s.Con
+			log.Println("Send message to connection")
+			if _, ok := h.connections[con]; ok {
+				con.send <- s.Message
+			}
 		}
 	}
+}
+
+type PairConTypes struct {
+	Con   *connection
+	Types []string
+}
+
+type PairConMessages struct {
+	Con     *connection
+	Message *Message
 }

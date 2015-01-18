@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/playgrunge/monicore/control"
 	"github.com/playgrunge/monicore/core/api"
@@ -24,6 +25,7 @@ func main() {
 
 	go h.Run()
 	go runTaskUpdateData(control.HockeyName, time.Minute*10)
+	go listenForNewTypes()
 
 	log.Println("Listening...")
 	http.ListenAndServe(":3000", nil)
@@ -41,6 +43,27 @@ func runTaskUpdateData(dataType string, tickerTime time.Duration) {
 		}
 	}
 	log.Println("Ticker stopped")
+}
+
+func listenForNewTypes() {
+	for {
+		c := <-h.ReceiveNewTypes
+		go func() {
+			for i := range c.Types {
+				if val, ok := routes[c.Types[i]]; ok {
+					if t, ok := val.(api.ApiRequest); ok {
+						if val, _ := t.GetApi(); val != nil {
+							var d map[string]interface{}
+							json.Unmarshal(val, &d)
+							message := hub.Message{c.Types[i], d}
+							pairConMessages := &hub.PairConMessages{c.Con, &message}
+							h.SendToConnection <- pairConMessages
+						}
+					}
+				}
+			}
+		}()
+	}
 }
 
 func broadcastMessageIfNew(dataType string, a api.ApiRequest) {
