@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 type HydroApi struct {
@@ -16,16 +17,29 @@ type HydroApi struct {
 }
 
 func (h *HydroApi) Scrape(doc *goquery.Document) map[string]interface{} {
-	var intrClientsREGEX = regexp.MustCompile(`^[0-9 ]+`)
-	var totalClientsREGEX = regexp.MustCompile(`[0-9 ]+$`)
+	var intrClientsREGEX = regexp.MustCompile(`^[0-9]+[0-9 ]*[0-9]*`)
+	var totalClientsREGEX = regexp.MustCompile(`[0-9]+[0-9 ]*[0-9]*$`)
 
 	var data = map[string]interface{}{}
 	doc.Find("div.service-on table tbody tr").Each(func(i int, s *goquery.Selection) {
 		region := s.Find("td[scope=row] a").Text()
 		interruptions := s.Find("td:nth-child(2)").Text()
 		clients := s.Find("td:nth-child(3)").Text()
-		intrClients := intrClientsREGEX.FindString(clients)
-		totalClients := totalClientsREGEX.FindString(clients)
+		intrClients := strings.Replace(intrClientsREGEX.FindString(clients), " ", "", -1)
+		totalClients := strings.Replace(totalClientsREGEX.FindString(clients), " ", "", -1)
+
+		data[region] = map[string]interface{}{
+			"interruptions":      interruptions,
+			"clientsInterrupted": intrClients,
+			"totalClients":       totalClients,
+		}
+	})
+	doc.Find("div.service-on table tfoot tr").Each(func(i int, s *goquery.Selection) {
+		region := "all"
+		interruptions := s.Find("td:nth-child(2)").Text()
+		clients := s.Find("td:nth-child(3)").Text()
+		intrClients := strings.Replace(intrClientsREGEX.FindString(clients), " ", "", -1)
+		totalClients := strings.Replace(totalClientsREGEX.FindString(clients), " ", "", -1)
 
 		data[region] = map[string]interface{}{
 			"interruptions":      interruptions,
@@ -50,7 +64,7 @@ func (h *HydroApi) SendApi(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HydroApi) GetApi() ([]byte, error) {
-	doc, err := goquery.NewDocument("http://pannes.hydroquebec.com/pannes/bilan-interruptions-service")
+	doc, err := goquery.NewDocument("http://poweroutages.hydroquebec.com/poweroutages/service-interruption-report")
 	if err != nil {
 		log.Fatal(err)
 	}
