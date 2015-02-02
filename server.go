@@ -100,6 +100,7 @@ var routes = map[string]interface{}{
 	control.AirportName: new(control.AirportApi),
 	control.WeatherName: new(control.WeatherApi),
 	control.HydroName:   new(control.HydroApi),
+	control.TwitterName: new(control.TwitterApi),
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {

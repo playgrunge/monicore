@@ -15,6 +15,10 @@ type ApiConfig struct {
 	Openweathermap struct {
 		AppId string
 	}
+	Twitter struct {
+		ConsumerKey    string
+		ConsumerSecret string
+	}
 }
 
 var apiConfig config.Config
