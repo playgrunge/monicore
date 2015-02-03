@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"github.com/playgrunge/monicore/core/hub"
 	"gopkg.in/mgo.v2"
 	"log"
 	"reflect"
@@ -30,8 +29,6 @@ func UpdateNewData(dataType string, data []byte) bool {
 	if !eq {
 		d["timeStamp"] = time.Now()
 		err = c.Insert(d)
-		message := hub.Message{dataType, d}
-		hub.GetHub().Broadcast <- &message
 		isDataUpdated = true
 		log.Println("Data updated")
 	} else {
