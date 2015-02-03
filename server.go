@@ -25,6 +25,7 @@ func main() {
 
 	go h.Run()
 	go runTaskUpdateData(control.HockeyName, time.Minute*10)
+	go runTaskUpdateData(control.TwitterName, time.Minute*2)
 	go listenForNewTypes()
 
 	log.Println("Listening...")
@@ -52,7 +53,14 @@ func listenForNewTypes() {
 			for i := range c.Types {
 				if val, ok := routes[c.Types[i]]; ok {
 					if t, ok := val.(api.ApiRequest); ok {
-						if val, _ := t.GetApi(); val != nil {
+						if cachedData := service.GetLastData(c.Types[i]); cachedData != nil {
+							//Return cached data
+							message := hub.Message{c.Types[i], cachedData}
+							pairConMessage := &hub.PairConMessage{c.Con, &message}
+							h.SendToConnection <- pairConMessage
+						} else if val, _ := t.GetApi(); val != nil {
+							//Cache data and return real data
+							service.UpdateNewData(c.Types[i], val)
 							var d map[string]interface{}
 							json.Unmarshal(val, &d)
 							message := hub.Message{c.Types[i], d}
