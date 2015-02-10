@@ -8,5 +8,9 @@
 },
 "openweathermap": {
 	"appId": "xxxxxxxxxxxxxxxxxxxxxxx"
+},
+"twitter": {
+	"ConsumerKey": "xxxxxxxxxxxxxxxxxxxxxxx",
+	"ConsumerSecret":"xxxxxxxxxxxxxxxxxxxxxxx"
 }
 }
